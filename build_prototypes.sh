@@ -6,12 +6,15 @@ else
   echo "prototypes_init folder already exists."
 fi
 data_list=(
-"ArTaxOr"
-"clipart1k"
-"DIOR"
-"UODD"
-"NEUDET"
-"FISH"
+#"ArTaxOr"
+#"clipart1k"
+#"DIOR"
+#"UODD"
+#"NEUDET"
+#"FISH"
+dataset1
+dataset2
+dataset3
 )
 shot_list=(
 1
