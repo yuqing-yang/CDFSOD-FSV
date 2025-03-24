@@ -1,5 +1,6 @@
 #!/bin/bash
 #SBATCH --partition=contrib-gpuq
+#SBATCH --qos=normal
 #SBATCH --gres=gpu:A100.80gb:4
 #SBATCH --nodes=1
 #SBATCH --mem=50G
