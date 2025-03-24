@@ -62,6 +62,70 @@ from detectron2.data.datasets.coco_zeroshot_categories import COCO_SEEN_CLS, \
 from sklearn.metrics import precision_recall_curve
 from sklearn import metrics as sk_metrics
 
+from detectron2.data.datasets import register_coco_instances
+from detectron2.data import DatasetCatalog, MetadataCatalog
+import os
+import json
+
+def load_and_remap_category_ids(annotation_path, output_path):
+    """Loads annotation file, remaps category IDs if needed, and saves to a temp file."""
+    with open(annotation_path, "r") as f:
+        data = json.load(f)
+
+    # Check if category IDs start from 0
+    min_category_id = min([c["id"] for c in data["categories"]])
+    if min_category_id == 0:
+        #print(f"Category IDs in {annotation_path} start from 0. Remapping to start from 1.")
+
+        # Create mapping {0 -> 1, 1 -> 2, ...}
+        category_mapping = {c["id"]: c["id"] + 1 for c in data["categories"]}
+
+        # Update category IDs
+        for c in data["categories"]:
+            c["id"] = category_mapping[c["id"]]
+        
+        # Update annotations
+        for ann in data["annotations"]:
+            ann["category_id"] = category_mapping[ann["category_id"]]
+
+    # Save fixed JSON to a new file
+    with open(output_path, "w") as f:
+        json.dump(data, f, indent=4)
+
+    #print(f"Saved fixed annotations to {output_path}")
+    return output_path
+
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))  # Moves up from ./tools/
+DATASET_DIR = os.path.join(BASE_DIR, "datasets")
+
+#print('base_path',BASE_DIR)
+#print('path',DATASET_DIR)
+#print(os.path.join(DATASET_DIR, "dataset2/annotations/test.json"))
+
+register_coco_instances("dataset2_test", {}, os.path.join(DATASET_DIR, "dataset2/annotations/test.json"), os.path.join(DATASET_DIR, "dataset2/test"))
+register_coco_instances("dataset2_1shot", {}, os.path.join(DATASET_DIR, "dataset2/annotations/1_shot.json"), os.path.join(DATASET_DIR, "dataset2/train"))
+register_coco_instances("dataset2_5shot", {}, os.path.join(DATASET_DIR, "dataset2/annotations/5_shot.json"), os.path.join(DATASET_DIR, "dataset2/train"))
+register_coco_instances("dataset2_10shot", {}, os.path.join(DATASET_DIR, "dataset2/annotations/10_shot.json"), os.path.join(DATASET_DIR, "dataset2/train"))
+
+register_coco_instances("dataset3_test", {}, os.path.join(DATASET_DIR, "dataset3/annotations/test.json"), os.path.join(DATASET_DIR, "dataset3/test"))
+register_coco_instances("dataset3_1shot", {}, os.path.join(DATASET_DIR, "dataset3/annotations/1_shot.json"), os.path.join(DATASET_DIR, "dataset3/train"))
+register_coco_instances("dataset3_5shot", {}, os.path.join(DATASET_DIR, "dataset3/annotations/5_shot.json"), os.path.join(DATASET_DIR, "dataset3/train"))
+register_coco_instances("dataset3_10shot", {}, os.path.join(DATASET_DIR, "dataset3/annotations/10_shot.json"), os.path.join(DATASET_DIR, "dataset3/train"))
+
+temp_dir = os.path.join(BASE_DIR, "temp_annotations") 
+# Create temp directory if it doesn't exist
+os.makedirs(temp_dir, exist_ok=True)
+
+for i in[1,5,10]:
+    dataset_name = 'dataset1_%dshot' % i
+    annotation_file = os.path.join(DATASET_DIR,'dataset1/annotations', f"{i}_shot.json")
+    temp_annotation_file = os.path.join(temp_dir, f"{i}_shot_fixed.json")
+    fixed_annotations = load_and_remap_category_ids(annotation_file, temp_annotation_file)
+    register_coco_instances(dataset_name, {}, fixed_annotations, os.path.join(DATASET_DIR, "dataset1/train"))
+
+temp_test_annotation_file = os.path.join(temp_dir, "test_fixed.json")
+fixed_test_annotation_file = load_and_remap_category_ids(os.path.join(DATASET_DIR,"dataset1/annotations/test.json"), temp_test_annotation_file)
+register_coco_instances('dataset1_test', {}, fixed_test_annotation_file, os.path.join(DATASET_DIR,"dataset1/test"))
 
 
 class Trainer(DefaultTrainer):

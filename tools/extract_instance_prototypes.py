@@ -31,12 +31,87 @@ import matplotlib.pyplot as plt
 from skimage.filters import gaussian
 import cv2
 
+from detectron2.data.datasets import register_coco_instances
+from detectron2.data import DatasetCatalog, MetadataCatalog
+import os
+import json
+
+
+def gaussian_mask(mask, sigma=2.0):
+    mask_np = mask.cpu().numpy()
+    soft_mask_np = gaussian(mask_np, sigma=sigma)
+    soft_mask = torch.tensor(soft_mask_np, device=mask.device)
+    return soft_mask / soft_mask.max()
+
+def load_and_remap_category_ids(annotation_path, output_path):
+    """Loads annotation file, remaps category IDs if needed, and saves to a temp file."""
+    with open(annotation_path, "r") as f:
+        data = json.load(f)
+
+    # Check if category IDs start from 0
+    min_category_id = min([c["id"] for c in data["categories"]])
+    if min_category_id == 0:
+        #print(f"Category IDs in {annotation_path} start from 0. Remapping to start from 1.")
+
+        # Create mapping {0 -> 1, 1 -> 2, ...}
+        category_mapping = {c["id"]: c["id"] + 1 for c in data["categories"]}
+
+        # Update category IDs
+        for c in data["categories"]:
+            c["id"] = category_mapping[c["id"]]
+        
+        # Update annotations
+        for ann in data["annotations"]:
+            ann["category_id"] = category_mapping[ann["category_id"]]
+
+    # Save fixed JSON to a new file
+    with open(output_path, "w") as f:
+        json.dump(data, f, indent=4)
+
+    #print(f"Saved fixed annotations to {output_path}")
+    return output_path
+
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))  # Moves up from ./tools/
+DATASET_DIR = os.path.join(BASE_DIR, "datasets")
+
+#print('base_path',BASE_DIR)
+#print('path',DATASET_DIR)
+#print(os.path.join(DATASET_DIR, "dataset2/annotations/test.json"))
+
+register_coco_instances("dataset2_test", {}, os.path.join(DATASET_DIR, "dataset2/annotations/test.json"), os.path.join(DATASET_DIR, "dataset2/test"))
+register_coco_instances("dataset2_1shot", {}, os.path.join(DATASET_DIR, "dataset2/annotations/1_shot.json"), os.path.join(DATASET_DIR, "dataset2/train"))
+register_coco_instances("dataset2_5shot", {}, os.path.join(DATASET_DIR, "dataset2/annotations/5_shot.json"), os.path.join(DATASET_DIR, "dataset2/train"))
+register_coco_instances("dataset2_10shot", {}, os.path.join(DATASET_DIR, "dataset2/annotations/10_shot.json"), os.path.join(DATASET_DIR, "dataset2/train"))
+
+register_coco_instances("dataset3_test", {}, os.path.join(DATASET_DIR, "dataset3/annotations/test.json"), os.path.join(DATASET_DIR, "dataset3/test"))
+register_coco_instances("dataset3_1shot", {}, os.path.join(DATASET_DIR, "dataset3/annotations/1_shot.json"), os.path.join(DATASET_DIR, "dataset3/train"))
+register_coco_instances("dataset3_5shot", {}, os.path.join(DATASET_DIR, "dataset3/annotations/5_shot.json"), os.path.join(DATASET_DIR, "dataset3/train"))
+register_coco_instances("dataset3_10shot", {}, os.path.join(DATASET_DIR, "dataset3/annotations/10_shot.json"), os.path.join(DATASET_DIR, "dataset3/train"))
+
+temp_dir = os.path.join(BASE_DIR, "temp_annotations") 
+# Create temp directory if it doesn't exist
+os.makedirs(temp_dir, exist_ok=True)
+
+for i in[1,5,10]:
+    dataset_name = 'dataset1_%dshot' % i
+    annotation_file = os.path.join(DATASET_DIR,'dataset1/annotations', f"{i}_shot.json")
+    temp_annotation_file = os.path.join(temp_dir, f"{i}_shot_fixed.json")
+    fixed_annotations = load_and_remap_category_ids(annotation_file, temp_annotation_file)
+    register_coco_instances(dataset_name, {}, fixed_annotations, os.path.join(DATASET_DIR, "dataset1/train"))
+
+temp_test_annotation_file = os.path.join(temp_dir, "test_fixed.json")
+fixed_test_annotation_file = load_and_remap_category_ids(os.path.join(DATASET_DIR,"dataset1/annotations/test.json"), temp_test_annotation_file)
+register_coco_instances('dataset1_test', {}, fixed_test_annotation_file, os.path.join(DATASET_DIR,"dataset1/test"))
+
 
 pixel_mean = torch.Tensor([123.675, 116.280, 103.530]).view(3, 1, 1)
 pixel_std = torch.Tensor([58.395, 57.120, 57.375]).view(3, 1, 1)
 normalize_image = lambda x: (x - pixel_mean) / pixel_std
 denormalize_image = lambda x: (x * pixel_std) + pixel_mean
 
+def normalize_with_temperature(features, temperature=0.07):
+    """Normalize features with temperature scaling for better similarity"""
+    return F.normalize(features / temperature, dim=-1)
 
 def compress(tensor, n_clst=5):
     if len(tensor) <= n_clst:
@@ -104,6 +179,8 @@ def get_dataloader(dname, aug=False, split=0, idx=0):
             T.RandomBrightness(0.9, 1.1),
             T.RandomContrast(0.9, 1.1),
             T.RandomSaturation(0.9, 1.1),
+            T.RandomLighting(0.7),
+            T.RandomRotation([-15, 15]), 
             T.RandomFlip(),
             T.ResizeShortestEdge(
                 short_edge_length=(480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800),
@@ -116,6 +193,7 @@ def get_dataloader(dname, aug=False, split=0, idx=0):
             T.RandomContrast(0.9, 1.1),
             T.RandomSaturation(0.9, 1.1),
             T.RandomFlip(),
+            T.RandomRotation([-10, 10]),
             T.ResizeShortestEdge(
                 short_edge_length=(400, 500, 600),
                 sample_style="choice",
@@ -124,6 +202,7 @@ def get_dataloader(dname, aug=False, split=0, idx=0):
                 crop_type="absolute_range",
                 crop_size=(384, 600),
             ),
+            T.RandomErasing(scale=(0.02, 0.1), ratio=(0.3, 3.3), p=0.5),
             T.ResizeShortestEdge(
                 short_edge_length=(480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800),
                 max_size=1333,
@@ -211,7 +290,6 @@ def main(model='vitl14', dataset='fs_coco17_support_novel_30shot', use_bbox='yes
                 r = model.get_intermediate_layers(image14x[None, ...], 
                                         return_class_token=True, reshape=True)    
                 patch_tokens = r[0][0][0] # c, h, w
-
                 if 'stuff' in dataset_name:
                     patch_tokens = patch_tokens.flatten(1).permute(1, 0) # h*w, c
                     smask = tvF.resize(item['sem_seg'].float()[None, ...], target_mask_size, interpolation=tvF.InterpolationMode.NEAREST)
@@ -243,7 +321,10 @@ def main(model='vitl14', dataset='fs_coco17_support_novel_30shot', use_bbox='yes
                         if bmask.sum() <= 0.5:
                             dataset['skip'] += 1
                             continue
-                        avg_patch_token = (bmask * patch_tokens).flatten(1).sum(1) / bmask.sum()
+                        #avg_patch_token = (bmask * patch_tokens).flatten(1).sum(1) / bmask.sum()
+                        soft_bmask = gaussian_mask(bmask[0])
+                        weighted_tokens = (soft_bmask.unsqueeze(0) * patch_tokens).flatten(1)
+                        avg_patch_token = weighted_tokens.sum(1) / soft_bmask.sum()
 
                         dataset['avg_patch_tokens'].append(avg_patch_token.cpu())
                         dataset['labels'].append(label.cpu().item())
@@ -278,7 +359,11 @@ def main(model='vitl14', dataset='fs_coco17_support_novel_30shot', use_bbox='yes
 
     classes = sorted(class2tokens.keys())
 
-    prototypes = F.normalize(torch.stack([class2tokens[c] for c in classes]), dim=-1)
+    #prototypes = F.normalize(torch.stack([class2tokens[c] for c in classes]), dim=-1)
+    prototypes = normalize_with_temperature(
+    torch.stack([class2tokens[c] for c in classes]), 
+    temperature=0.07  # Adjustable parameter
+    )
     file_names = [class2filename[c] for c in classes]
     images = [class2imgs[c] for c in classes]
     for cls in class2bbox:

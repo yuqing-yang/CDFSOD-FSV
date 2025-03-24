@@ -41,6 +41,20 @@ DIOR_5SHOT = 'DIOR_5shot'
 DIOR_1SHOT = 'DIOR_1shot'
 DIOR_TRAIN = 'DIOR_train'
 
+dataset1_test = 'dataset1_test'
+dataset1_10shot = 'dataset1_10shot'
+dataset1_5shot = 'dataset1_5shot'
+dataset1_1shot = 'dataset1_1shot'
+
+dataset2_test = 'dataset2_test'
+dataset2_10shot = 'dataset2_10shot'
+dataset2_5shot = 'dataset2_5shot'
+dataset2_1shot = 'dataset2_1shot'
+
+dataset3_test = 'dataset3_test'
+dataset3_10shot = 'dataset3_10shot'
+dataset3_5shot = 'dataset3_5shot'
+dataset3_1shot = 'dataset3_1shot'
 
 FISH_10SHOT = 'FISH_10shot'
 FISH_1SHOT = 'FISH_1shot'
@@ -103,6 +117,18 @@ SEEN_CLS_DICT = {
     FISH_5SHOT: ['fish'],
     FISH_1SHOT: ['fish'],
     FISH_TEST: ['fish'],
+    dataset1_test: ['apple','avocado','capsicum','mango','orange','rockmelon', 'strawberry'],
+    dataset1_10shot: ['apple','avocado','capsicum','mango','orange','rockmelon', 'strawberry'],
+    dataset1_1shot: ['apple','avocado','capsicum','mango','orange','rockmelon', 'strawberry'],
+    dataset1_5shot: ['apple','avocado','capsicum','mango','orange','rockmelon', 'strawberry'],
+    dataset2_test: ['car'],
+    dataset2_10shot: ['car'],
+    dataset2_1shot: ['car'],
+    dataset2_5shot: ['car'],
+    dataset3_test: ['dent','scratch','crack','glass shatter', 'lamp broken', 'tire flat'],
+    dataset3_10shot: ['dent','scratch','crack','glass shatter', 'lamp broken', 'tire flat'],
+    dataset3_1shot: ['dent','scratch','crack','glass shatter', 'lamp broken', 'tire flat'],
+    dataset3_5shot: ['dent','scratch','crack','glass shatter', 'lamp broken', 'tire flat'],
     COCO_2017_SPLIT_1: get_oneshot_split(1),
     COCO_2017_SPLIT_2: get_oneshot_split(2),
     COCO_2017_SPLIT_3: get_oneshot_split(3),
@@ -148,6 +174,18 @@ ALL_CLS_DICT = {
     FISH_5SHOT: ['fish'],
     FISH_1SHOT: ['fish'],
     FISH_TEST: ['fish'],
+    dataset1_test: ['apple','avocado','capsicum','mango','orange','rockmelon', 'strawberry'],
+    dataset1_10shot: ['apple','avocado','capsicum','mango','orange','rockmelon', 'strawberry'],
+    dataset1_1shot: ['apple','avocado','capsicum','mango','orange','rockmelon', 'strawberry'],
+    dataset1_5shot: ['apple','avocado','capsicum','mango','orange','rockmelon', 'strawberry'],
+    dataset2_test: ['car'],
+    dataset2_10shot: ['car'],
+    dataset2_1shot: ['car'],
+    dataset2_5shot: ['car'],
+    dataset3_test: ['dent','scratch','crack','glass shatter', 'lamp broken', 'tire flat'],
+    dataset3_10shot: ['dent','scratch','crack','glass shatter', 'lamp broken', 'tire flat'],
+    dataset3_1shot: ['dent','scratch','crack','glass shatter', 'lamp broken', 'tire flat'],
+    dataset3_5shot: ['dent','scratch','crack','glass shatter', 'lamp broken', 'tire flat'],
     COCO_2017_SPLIT_1: coco17_all_classes,
     COCO_2017_SPLIT_2: coco17_all_classes,
     COCO_2017_SPLIT_3: coco17_all_classes,
