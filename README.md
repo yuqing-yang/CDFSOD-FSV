@@ -67,5 +67,7 @@ sbatch run_main.slurm
 ```
 ### Ensure Each Dataset Has the Correct Category Mapping
 ```
-python convert_id.py
+python convert_id -x 1.py
+python convert_id -x 5.py
+python convert_id -x 10.py
 ```
