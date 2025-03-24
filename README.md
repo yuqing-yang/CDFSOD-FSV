@@ -62,7 +62,10 @@ As the environment is ready, generate class prototypes for the testing datasets
 sbatch run_pkl.slurm
 ```
 ## Run the Baseline Model
-
 ```
 sbatch run_main.slurm
+```
+### Ensure Each Dataset Has the Correct Category Mapping
+```
+python convert_id.py
 ```
