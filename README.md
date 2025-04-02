@@ -1,9 +1,25 @@
-# CDFSOD-FSV
+# NTIRE 2025 CD-FSOD Challenge @ CVPR Workshop
 
-## Original Repository
-This project is based on [NTIRE2025_CDFSOD](https://github.com/lovelyqian/NTIRE2025_CDFSOD).
+We are the **team** of the **NTIRE 2025 Cross-Domain Few-Shot Object Detection (CD-FSOD) Challenge** at the **CVPR Workshop**.
 
- We strictly use the same training data as our baseline method (COCO)—without introducing any extra pretraining models or additional source domain data.
+- 🏆 **Track**: `closed-source track`
+- 🎖️ **Award**: **3rd Place**
+
+🔗 [NTIRE 2025 Official Website](https://cvlai.net/ntire/2025/)  
+🔗 [NTIRE 2025 Challenge Website](https://codalab.lisn.upsaclay.fr/competitions/21851)  
+🔗 [CD-FSOD Challenge Repository](https://github.com/lovelyqian/NTIRE2025_CDFSOD)
+
+![CD-FSOD Task](https://upload-images.jianshu.io/upload_images/9933353-3d7be0d924bd4270.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+---
+
+## Overview
+
+This repository contains our solution for the `closed-source track` of the NTIRE 2025 CD-FSOD Challenge.  
+
+We strictly use the same training data as our baseline method (COCO)—without introducing any extra pretraining models or additional source domain data.
+
+---
 
 ## The Environments
 The evaluation environments we adopted are recorded in the following section. Below are the system requirements and setup instructions for reproducing the evaluation environment.
@@ -70,4 +86,15 @@ sbatch run_main.slurm
 python convert_id -x 1.py
 python convert_id -x 5.py
 python convert_id -x 10.py
+```
+
+## Citation
+If you use our method or codes in your research, please cite:
+```
+@inproceedings{fu2025ntire, 
+  title={NTIRE 2025 challenge on cross-domain few-shot object detection: methods and results,
+  author={Fu, Yuqian and Qiu, Xingyu and Ren, Bin and Fu, Yanwei and Timofte, Radu and Sebe, Nicu and Yang, Ming-Hsuan and Van Gool, Luc and others},
+  booktitle={CVPRW},
+  year={2025}
+}
 ```
